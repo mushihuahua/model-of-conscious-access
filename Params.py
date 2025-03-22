@@ -11,7 +11,7 @@ class Params:
     tau_r: int = 2      # Firing rate time constant (ms)  
     gamma_NMDA: float = 1.282  # synaptic rise constants
     gamma_AMPA: int = 2      # synaptic rise constants
-    gamma_I: int = 2         # synaptic rise constants
+    gamma_GABBA: int = 2         # synaptic rise constants
     k_sup: float = 0.0         # NMDA fraction
     k_dp: float = 0.8          # NMDA fraction
     k_local: float = 0.91      # NMDA fraction
