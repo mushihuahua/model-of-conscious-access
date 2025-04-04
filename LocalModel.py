@@ -54,18 +54,18 @@ class LocalModel:
 
         dsNDMAdt = self.synaptic_dynamics(s_NDMA, rE, params.tau_NMDA, params.gamma_NMDA)
         dsAMPAdt = self.synaptic_dynamics(s_AMPA, rE, params.tau_AMPA, params.gamma_AMPA)
-        dsGABAdt = self.synaptic_dynamics(s_GABA, rI, params.tau_GABA, params.gamma_GABBA, gaba=True)
+        dsGABAdt = self.synaptic_dynamics(s_GABA, rI, params.tau_GABA, params.gamma_GABA, gaba=True)
 
         dnoise_dt = self.ornstein_uhlenbeck_process(I_noise)
 
-        I_total_E = self._excitatory_ndma_current(s_NDMA) 
-        + self._excitatory_ndma_current(s_AMPA) 
-        + self._excitatory_ndma_current(s_GABA) 
-        + self._inhibitory_ndma_current(s_NDMA) 
-        + self.ornstein_uhlenbeck_process(I_noise)
+        I_total_E = self._excitatory_ndma_current(dsNDMAdt) 
+        # + self._excitatory_ampa_current(dsAMPAdt) 
+        + self._excitatory_gaba_current(dsGABAdt) 
+        + self._inhibitory_ndma_current(dsNDMAdt) 
+        + self.ornstein_uhlenbeck_process(dnoise_dt)
         + params.I_bg_E 
 
-        I_total_I =  self._inhibitory_ndma_current(s_NDMA) + self.ornstein_uhlenbeck_process(I_noise) + params.I_bg_E 
+        I_total_I =  self._inhibitory_ndma_current(dsNDMAdt) + self.ornstein_uhlenbeck_process(dnoise_dt) + params.I_bg_I 
 
         drEdt = self.rate_dynamics(rE, I_total_E, "E")
         drIdt = self.rate_dynamics(rI, I_total_I, "I")
@@ -74,8 +74,8 @@ class LocalModel:
 
     def run(self):
 
-        init_conditions = [0.1, 0.1, 0.1,
-                           0.1, 0.1, 0.1]
+        init_conditions = [0, 0, 0,
+                           0, 0, 0]
 
         # Solve the ODE system 
         result = solve_ivp(self.ode_model, t_span, init_conditions,
@@ -131,6 +131,9 @@ if( __name__ == "__main__"):
 
     # Plotting the results
     plt.figure(figsize=(10, 6))
+    # print(result.y)
     plt.plot(result.t, result.y[3], label='Excitatory')
     plt.plot(result.t, result.y[4], label='Inhibitory')
+    plt.legend()
     plt.show()
+1
