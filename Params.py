@@ -1,14 +1,16 @@
 from dataclasses import dataclass
+from brian2 import ms, second, pA, nA, Hz
+from brian2.units.fundamentalunits import Quantity
 
 
 @dataclass
 class Params:
-    tau_NMDA: int = 60  # E synaptic time constants (ms)
-    tau_AMPA: int = 2   # E synaptic time constants (ms)
-    g_NMDA: int = 1000  # Channel conductances (ms)
-    g_AMPA: int = 10_000 # Channell conductances (ms)
-    tau_GABA: int = 5   # I synaptic constant (ms)
-    tau_r: int = 2      # Firing rate time constant (ms)  
+    tau_NMDA = 60*ms  # E synaptic time constants (ms)
+    tau_AMPA = 2*ms   # E synaptic time constants (ms)
+    g_NMDA = 1000*pA  # Channel conductances (pA)
+    g_AMPA = 10_000*pA # Channell conductances (pA)
+    tau_GABA = 5*ms   # I synaptic constant (ms)
+    tau_r = 2*ms      # Firing rate time constant (ms)  
     gamma_NMDA: float = 1.282  # synaptic rise constants
     gamma_AMPA: int = 2      # synaptic rise constants
     gamma_GABA: int = 2         # synaptic rise constants
@@ -19,24 +21,24 @@ class Params:
     p_dp: float = 0.015        # Long-range E/I targets
     z_min: float = 0.6         # Minimum exctiation values
     z_min_I: float = 0.218     # Minimum excitation values
-    sigma_noise: float = 2.5   # std. dev. noise (pA)
-    I_bg_E: float = 329.4      # Background inputs (pA)
-    I_bg_I: int = 260        # Background inputs (pA)
-    a: float = 0.135           # f-I curve (E cells) (Hz/pA)
-    b: float = 54             # f-I curve (E cells) (Hz)
-    d: float= 0.308           # f-I curve (E cells) (s)
-    beta_i: float = 153.75        #f-I curve (I cells) (Hz/nA)
-    I_th: int = 252           # f-I curve (I cells) (s)
+    sigma_noise = 2.5*pA   # std. dev. noise (pA)
+    I_bg_E = 329.4*pA      # Background inputs (pA)
+    I_bg_I = 260*pA        # Background inputs (pA)
+    a = 0.135*(Hz/pA)           # f-I curve (E cells) (Hz/pA)
+    b = 54*Hz             # f-I curve (E cells) (Hz)
+    d= 0.308*second           # f-I curve (E cells) (s)
+    beta_i = 153.75*(Hz/nA)        #f-I curve (I cells) (Hz/nA)
+    I_th = 252*pA          # f-I curve (I cells) (Hz)
     b1: float = 0.3            # Rescale FLN
-    G_n_loc_E_E = 480   # Excitatory strengths NMDA (pA)
-    G_a_loc_E_E = 4800  # Excitatory strengths AMPA (pA)
-    G_n_loc_I_E = 10    # Excitatory strangths NMDA inhibition (pA)
-    G_E_I = -8800       # Inhibitory strengths (pA)
-    G_I_I = -120        # Inhibitory strengths (pA)
-    G_E_NMDA = 1500      # Long range strength NMDA (pA)
-    G_I_NMDA = 10.5      # Long range strength AMPA (pA)
-    G_0 = 215            # Local balanced coupling (pA)
-    I_stim = 250        # Stimulus strength (pA)
+    G_n_loc_E_E = 480*pA   # Excitatory strengths NMDA (pA)
+    G_a_loc_E_E = 4800*pA  # Excitatory strengths AMPA (pA)
+    G_n_loc_I_E = 10*pA    # Excitatory strangths NMDA inhibition (pA)
+    G_E_I = -8800*pA       # Inhibitory strengths (pA)
+    G_I_I = -120*pA        # Inhibitory strengths (pA)
+    G_E_NMDA = 15000*pA      # Long range strength NMDA (pA)
+    G_I_NMDA = 105*pA      # Long range strength AMPA (pA)
+    G_0 = 215*pA            # Local balanced coupling (pA)
+    I_stim = 250*pA       # Stimulus strength (pA)
 
     # https://elifesciences.org/articles/72136
 
