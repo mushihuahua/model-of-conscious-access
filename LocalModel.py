@@ -1,9 +1,10 @@
 import numpy as np
 from scipy.integrate import solve_ivp
+from scipy.optimize import fsolve
 import matplotlib.pyplot as plt
 import math
 
-from Params import Params
+from ParamsLocal import Params
 from brian2 import ms, second, amp, pA, nA, Hz
 
 import logging
@@ -59,9 +60,6 @@ class LocalModel:
         self.rE = np.zeros(len(t_span_euler))
         self.rI = np.zeros(len(t_span_euler))
 
-        self.eCurrents = np.zeros(len(t_span_euler))
-
-
     def ode_model(self, t, v):
         s_NDMA, s_AMPA, s_GABA, rE, rI, I_noise = v
 
@@ -114,8 +112,6 @@ class LocalModel:
 
             I_total_I =  self._inhibitory_ndma_current(s_NDMA) + I_noise + params.I_bg_I 
 
-            self.eCurrents[i-1] = I_total_I 
-
             self.rE[i] = rE + self.rate_dynamics(rE, I_total_E, "E") * dt*second
             self.rI[i] = rI + self.rate_dynamics(rI, I_total_I, "I") * dt*second
 
@@ -132,7 +128,6 @@ class LocalModel:
         #                    t_eval=t_eval, method='RK45')
         
         self.euler_ode_model(init_conditions)
-
         # return result
         
 
@@ -179,20 +174,61 @@ class LocalModel:
         dIdt = (-I + np.random.normal(0, 1) * np.sqrt(2 * params.sigma_noise**2)) / params.tau_AMPA
         return dIdt
     
+def get_nullclines(model):
+    res = 100
+
+    sNDMA_vals = np.linspace(0, 1, res)
+    sGABA_vals = np.linspace(0, 1, res)
+    sNDMA_grid, sGABA_grid = np.meshgrid(sNDMA_vals, sGABA_vals)
+
+    nullclineE = np.zeros_like(sNDMA_grid)
+    nullclineI = np.zeros_like(sGABA_grid)
+
+    I_noise = 0
+    
+    def rateFuncE(sE, sI):
+        I_total_E = (
+            model._excitatory_ndma_current(sE)
+            + model._excitatory_gaba_current(sI)
+            + I_noise + params.I_bg_E + params.I_stim
+            )
+        
+        rE = model._threshold_function("E", I_total_E)
+
+        return rE
+
+    nullclineE = np.vectorize(lambda sE, sI : model.synaptic_dynamics(sE, rateFuncE(sE, sI), params.tau_NMDA, params.gamma_NMDA)/Hz + 0.3)(sNDMA_grid, sGABA_grid) 
+
+    def rateFuncI(sE, sI):
+        I_total_I = model._inhibitory_ndma_current(sE) + I_noise + params.I_bg_I
+        
+        rI = model._threshold_function("I", I_total_I)
+
+        return rI
+
+    nullclineI = np.vectorize(lambda sE, sI : model.synaptic_dynamics(sI, rateFuncI(sE, sI), params.tau_GABA, params.gamma_GABA))(sNDMA_grid, sGABA_grid) 
+
+
+    
+    plt.figure(figsize=(8, 6))
+    CS1 = plt.contour(sNDMA_grid, sGABA_grid, nullclineE, levels=[0], colors='blue', label='dE/dt=0')
+    CS2 = plt.contour(sNDMA_grid, sGABA_grid, nullclineI, levels=[0], colors='red', label='dI/dt=0')
+    plt.xlabel('sE')
+    plt.ylabel('sI')
+    plt.ylim([-0.05, 1.05])
+    plt.xlim([-0.05, 1.05])
+    plt.title('Phase Potrait')
+    plt.grid(True)
+    plt.show()
+    
+    return nullclineE
+
 if( __name__ == "__main__"):
 
     model = LocalModel()
-    result = model.run()
+    # result = model.run()
 
-    # Plotting the results
-    plt.figure(figsize=(10, 6))
-    # print(result.y)
-    plt.plot(t_span_euler, model.rE, label='Excitatory')
-    plt.plot(t_span_euler, model.rI, label='Inhibitory')
+    nullcline = get_nullclines(model)
 
-    # plt.plot(t_span_euler, model.eCurrents, label='NMDA')
-    # plt.plot(result.t, result.y[1], label='AMPA')
-    # plt.plot(result.t, result.y[2], label='GABA')
+    print(nullcline)
 
-    plt.legend()
-    plt.show()
