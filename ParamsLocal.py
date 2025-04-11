@@ -5,7 +5,7 @@ from brian2.units.fundamentalunits import Quantity
 
 @dataclass
 class Params:
-    tau_NMDA = 66*ms  # E synaptic time constants (ms)
+    tau_NMDA = 0.66*ms  # E synaptic time constants (ms)
     tau_AMPA = 2*ms   # E synaptic time constants (ms)
     g_NMDA = 1000*pA  # Channel conductances (pA)
     g_AMPA = 10_000*pA # Channell conductances (pA)
@@ -30,7 +30,7 @@ class Params:
     beta_i = 153.75*(Hz/nA)        #f-I curve (I cells) (Hz/nA)
     I_th = 252*pA          # f-I curve (I cells) (Hz)
     b1: float = 0.3            # Rescale FLN
-    G_n_loc_E_E = 12000*pA   # Excitatory strengths NMDA (pA)
+    G_n_loc_E_E = 17000*pA   # Excitatory strengths NMDA (pA)
     G_a_loc_E_E = 4800*pA  # Excitatory strengths AMPA (pA)
     G_n_loc_I_E = 400*pA    # Excitatory strangths NMDA inhibition (pA)
     G_E_I = -8800*pA       # Inhibitory strengths (pA)
