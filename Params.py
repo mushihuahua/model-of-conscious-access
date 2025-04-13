@@ -35,8 +35,10 @@ class Params:
     G_n_loc_I_E = 10*pA    # Excitatory strangths NMDA inhibition (pA)
     G_E_I = -8800*pA       # Inhibitory strengths (pA)
     G_I_I = -120*pA        # Inhibitory strengths (pA)
-    G_E_NMDA = 15000*pA      # Long range strength NMDA (pA)
-    G_I_NMDA = 105*pA      # Long range strength AMPA (pA)
+    G_E_NMDA = 1500*pA      # Long range strength NMDA (pA)
+    G_I_NMDA = 10.5*pA      # Long range strength AMPA (pA)
+    G_E_AMPA = 15000*pA      # Long range strength NMDA (pA)
+    G_I_AMPA = 105*pA      # Long range strength AMPA (pA)
     G_0 = 215*pA            # Local balanced coupling (pA)
     I_stim = 250*pA       # Stimulus strength (pA)
 
@@ -44,3 +46,5 @@ class Params:
 
     chi_raw_min: int = 643
     chi_raw_max: int = 8337
+
+    num_of_source_areas = num_of_target_areas = 40

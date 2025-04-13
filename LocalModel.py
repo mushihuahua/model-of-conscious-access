@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import math
 
 from ParamsLocal import Params
+from utils.spines import spine_count_gradient, normalised_spine_count
 from brian2 import ms, second, amp, pA, nA, Hz
 
 import logging
@@ -21,25 +22,6 @@ dt = 0.001
 t_span = (0, simulation_time)
 t_span_euler = np.arange(0, simulation_time, dt)
 t_eval = np.linspace(0, simulation_time, int(simulation_time / dt))
-
-def normalised_spine_count(k: int, chi_raw: int):
-    """Calculate and return the normalised spine count for area `k`
-    
-       Inputs:
-        `k`: Cortical area.
-        `χ_raw`: The spine count for area `k`.
-    """
-
-    chi_normalised = (chi_raw - params.chi_raw_min) / (params.chi_raw_max - params.chi_raw_min)
-    return chi_normalised
-
-def spine_count_gradient(k: int, chi_raw: int, population: str):
-    """Calculate and return the spine count modulation variable for area `k`"""
-
-    z_min = params.z_min if population == "E" else params.z_min_I
-
-    z_k = z_min + normalised_spine_count(k, chi_raw) * (1 - z_min)
-    return z_k
 
 class LocalModel:
 
@@ -178,3 +160,12 @@ if( __name__ == "__main__"):
 
     model = LocalModel()
     result = model.run()
+
+    plt.plot(t_span_euler, model.rE, color="red")
+    plt.plot(t_span_euler, model.rI, color="blue")
+
+    # plt.plot(t_span_euler, model.sNDMA, label="NMDA")
+    # plt.plot(t_span_euler, model.sGABA, label="GABA")
+    # plt.plot(t_span_euler, model.sAMPA, label="AMPA")
+    plt.legend()
+    plt.show()
