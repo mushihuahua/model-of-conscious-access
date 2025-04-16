@@ -18,8 +18,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 params = Params()
-simulation_time = 100
+simulation_time = 10
 dt = 0.001
+
+stimulus_end = 5
 
 t_span = (0, simulation_time)
 t_span_euler = np.arange(0, simulation_time, dt)
@@ -38,7 +40,8 @@ class LongRangeModel:
         self.sAMPA = np.zeros((params.num_of_target_areas, len(t_span_euler)))
         self.sGABA = np.zeros((params.num_of_target_areas, len(t_span_euler)))
 
-        self.noise = np.zeros((params.num_of_target_areas, len(t_span_euler)))
+        self.noiseE = np.zeros((params.num_of_target_areas, len(t_span_euler)))
+        self.noiseI = np.zeros((params.num_of_target_areas, len(t_span_euler)))
 
         self.rE = np.zeros((params.num_of_target_areas, len(t_span_euler)))
         self.rI = np.zeros((params.num_of_target_areas, len(t_span_euler)))
@@ -89,23 +92,24 @@ class LongRangeModel:
 
     def euler_ode_model(self, v):
         
-        self.sNDMA[:,0], self.sAMPA[:,0], self.sGABA[:,0], self.rE[:,0], self.rI[:,0], self.noise[:,0] = v
+        self.sNDMA[:,0], self.sAMPA[:,0], self.sGABA[:,0], self.rE[:,0], self.rI[:,0], self.noiseE[:,0], self.noiseI[:,0] = v
 
         for i in range(1, len(t_span_euler)):
 
-            s_NDMA, s_AMPA, s_GABA, rE, rI, I_noise = self.sNDMA[:, i-1], self.sAMPA[:, i-1], self.sGABA[:, i-1], self.rE[:, i-1]*Hz, self.rI[:, i-1]*Hz, self.noise[:, i-1]*amp
+            s_NDMA, s_AMPA, s_GABA, rE, rI, I_noiseE, I_noiseI = self.sNDMA[:, i-1], self.sAMPA[:, i-1], self.sGABA[:, i-1], self.rE[:, i-1]*Hz, self.rI[:, i-1]*Hz, self.noiseE[:, i-1]*amp, self.noiseI[:, i-1]*amp
 
             t = i*dt
 
             stimulus = 0
-            if(t <= 50):
+            if(t <= stimulus_end):
                 stimulus = params.I_stim
             
             self.sNDMA[:, i] = s_NDMA + self.synaptic_dynamics(s_NDMA, rE, params.tau_NMDA, params.gamma_NMDA) * dt*second
             self.sAMPA[:, i] = s_AMPA + self.synaptic_dynamics(s_AMPA, rE, params.tau_AMPA, params.gamma_AMPA) * dt*second
             self.sGABA[:, i] = s_GABA + self.synaptic_dynamics(s_GABA, rI, params.tau_GABA, params.gamma_GABA, gaba=True) * dt*second
 
-            self.noise[:, i] = I_noise + self.ornstein_uhlenbeck_process(I_noise) * dt*second
+            self.noiseE[:, i] = I_noiseE + self.ornstein_uhlenbeck_process(I_noiseE) * dt*second
+            self.noiseI[:, i] = I_noiseI + self.ornstein_uhlenbeck_process(I_noiseI) * dt*second
 
             # print(self._excitatory_ndma_current_long_range(s_NDMA))
             # print(np.array(list(map(self._dendritic_function_F, self._excitatory_ndma_current_long_range(s_NDMA))))* amp) 
@@ -115,7 +119,7 @@ class LongRangeModel:
                 + np.array(list(map(self._dendritic_function_F, self._excitatory_ampa_current_long_range(s_AMPA)))) * amp
                 + self._excitatory_ndma_current(s_NDMA) 
                 + self._excitatory_gaba_current(s_GABA) 
-                + I_noise + params.I_bg_E + stimulus
+                + I_noiseE + params.I_bg_E + stimulus
             )
 
             # print(rE)
@@ -124,7 +128,7 @@ class LongRangeModel:
                 self._inhibitory_ndma_current_long_range(s_NDMA)
                 + self._inhibitory_ampa_current_long_range(s_AMPA)
                 + self._inhibitory_ndma_current(s_NDMA) 
-                + I_noise + params.I_bg_I 
+                + I_noiseI + params.I_bg_I 
             )
 
             self.rE[:, i] = rE + self.rate_dynamics(rE, I_total_E, "E") * dt*second
@@ -137,7 +141,7 @@ class LongRangeModel:
         self.init_anatomy()
 
         init_conditions = np.array((0.1, 0.1, 0.1,
-                                    0.1, 0.1, 0))
+                                    0.1, 0.1, 0, 0))
         
 
         # Solve the ODE system 
