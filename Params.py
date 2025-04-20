@@ -41,6 +41,7 @@ class Params:
     G_I_AMPA = 105*pA      # Long range strength AMPA (pA)
     G_0 = 215*pA            # Local balanced coupling (pA)
     I_stim = 250*pA       # Stimulus strength (pA)
+    I_vig = 50*pA       # Vigilance strength (pA)
 
     # https://elifesciences.org/articles/72136
 
