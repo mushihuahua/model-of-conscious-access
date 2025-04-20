@@ -146,8 +146,8 @@ class LongRangeModel:
             s_NDMAo, s_AMPAo = self.sNDMA[:, i-1, :], self.sAMPA[:, i-1, :]
 
             I_total_I = (
-                np.array(list(map(self._dendritic_function_F, self._inhibitory_ndma_current_long_range(s_NDMAo)))) * amp
-                + np.array(list(map(self._dendritic_function_F, self._inhibitory_ampa_current_long_range(s_AMPAo)))) * amp
+                self._inhibitory_ndma_current_long_range(s_NDMAo)
+                + self._inhibitory_ampa_current_long_range(s_AMPAo)
                 # LONG RANGE INHIBITORY CURRENTS GIVE THE WEIRD MASSIVE SPIKES FOR SOME REASON, EXPLORE MORE LATER
                 + self._inhibitory_ndma_current(s_NDMAo) 
                 + I_noiseI + params.I_bg_I 
