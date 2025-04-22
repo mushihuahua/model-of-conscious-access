@@ -66,7 +66,7 @@ class LongRangeModel:
         self.area_names = list(map(lambda x: str(x[0]), area_names))
         print(self.area_names)
 
-        K, L = np.meshgrid(range(params.num_of_target_areas), range(params.num_of_source_areas))
+        K, L = np.meshgrid(range(params.num_of_target_areas), range(params.num_of_source_areas), indexing='ij')
         self.W = np.vectorize(self._connection_strength_w)(K, L)
         # print(self.W)
 
@@ -148,7 +148,7 @@ class LongRangeModel:
             I_total_I = (
                 self._inhibitory_ndma_current_long_range(s_NDMAo)
                 + self._inhibitory_ampa_current_long_range(s_AMPAo)
-                # LONG RANGE INHIBITORY CURRENTS GIVE THE WEIRD MASSIVE SPIKES FOR SOME REASON, EXPLORE MORE LATER
+                + (params.G_I_I * s_GABA)
                 + self._inhibitory_ndma_current(s_NDMAo) 
                 + I_noiseI + params.I_bg_I 
             )
@@ -159,7 +159,7 @@ class LongRangeModel:
 
         self._init_anatomy()
 
-        init_conditions = np.array((0.1, 0.1, 0.1, # NMDA, AMPA, GABA
+        init_conditions = np.array((1, 1, 1, # NMDA, AMPA, GABA
                                     0, 0, # rE, rI
                                     0))  # noise,
         
@@ -275,7 +275,8 @@ if( __name__ == "__main__"):
     result = model.run()
 
     area_index = model.area_names.index("9/46d")
-    # V1 RESULTS NORMAL BUT 9/46d NOT AS EXPECTED FOR SOME REASON.
+    # area_index = model.area_names.index("V1")
+    # IDK WHY ITS SPIKING AT THE START AND CAUSING PERSISTENT ACTIVITY 
 
     plt.plot(t_span_euler, model.rE[area_index, :, 0], color="red")
     plt.plot(t_span_euler, model.rE[area_index, :, 1], color="green")
