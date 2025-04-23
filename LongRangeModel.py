@@ -63,10 +63,11 @@ class LongRangeModel:
         subgraph_data = sio.loadmat('data/spine_counts.mat')    
         self.spine_counts = subgraph_data['spine_count_lyon_regions_40'].ravel()
         area_names = subgraph_data['subgraph_hierarchical_order'].ravel()
+        print(self.spine_counts)
         self.area_names = list(map(lambda x: str(x[0]), area_names))
         print(self.area_names)
 
-        K, L = np.meshgrid(range(params.num_of_target_areas), range(params.num_of_source_areas), indexing='ij')
+        K, L = np.meshgrid(range(params.num_of_target_areas), range(params.num_of_source_areas))
         self.W = np.vectorize(self._connection_strength_w)(K, L)
         # print(self.W)
 
@@ -130,12 +131,18 @@ class LongRangeModel:
                     + self._excitatory_ndma_current(s_NDMA) 
                     + self._excitatory_ampa_current(s_AMPA)
                     + self._excitatory_gaba_current(s_GABA) 
-                    + I_noise + params.I_bg_E + stimulus
+                    + I_noise + params.I_bg_E
                 )
 
                 I_total_E = np.zeros(params.num_of_target_areas)*amp
 
-                I_total_E[:int(0.75*len(I_total_E))] = total_current[:int(0.75*len(I_total_E))] + params.I_vig
+                if(j == 0):
+                    I_total_E[0] = total_current[0] + params.I_vig + stimulus
+                    I_total_E[1:int(0.75*len(I_total_E))] = total_current[1:int(0.75*len(I_total_E))] + params.I_vig
+                
+                if(j == 1):
+                    I_total_E[0:int(0.75*len(I_total_E))] = total_current[:int(0.75*len(I_total_E))] + params.I_vig
+            
                 I_total_E[int(0.75*len(I_total_E)):] = total_current[int(0.75*len(I_total_E)):]
 
                 self.rE[:, i, j] = rE + self.rate_dynamics(rE, I_total_E, "E") * dt*second
@@ -159,7 +166,7 @@ class LongRangeModel:
 
         self._init_anatomy()
 
-        init_conditions = np.array((1, 1, 1, # NMDA, AMPA, GABA
+        init_conditions = np.array((0.1, 0.1, 0.1, # NMDA, AMPA, GABA
                                     0, 0, # rE, rI
                                     0))  # noise,
         
