@@ -213,7 +213,7 @@ class LongRangeModel:
         exit()
 
     def _excitatory_ndma_current(self, S):
-        I = spine_count_gradient_long_range(self.spine_counts, "E") * params.G_n_loc_E_E * S
+        I = spine_count_gradient_long_range(self.spine_counts, "E") * params.k_local * params.G_n_loc_E_E * S
         return I
     
     def _excitatory_ampa_current(self, S):
