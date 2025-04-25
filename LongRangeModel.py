@@ -67,9 +67,9 @@ class LongRangeModel:
         self.area_names = list(map(lambda x: str(x[0]), area_names))
         print(self.area_names)
 
-        K, L = np.meshgrid(range(params.num_of_target_areas), range(params.num_of_source_areas))
+        K, L = np.meshgrid(range(params.num_of_target_areas), range(params.num_of_source_areas), indexing="ij")
         self.W = np.vectorize(self._connection_strength_w)(K, L)
-        # print(self.W)
+        # # print(self.W)
 
     # def ode_model(self, t, v):
     #     s_NDMA, s_AMPA, s_GABA, rE, rI, I_noise = v
@@ -107,6 +107,8 @@ class LongRangeModel:
 
             t = i*dt
 
+            vigilance_current = params.I_vig
+
             stimulus = 0
             if(t <= stimulus_end and t >= stimulus_start):
                 stimulus = params.I_stim
@@ -137,13 +139,13 @@ class LongRangeModel:
                 I_total_E = np.zeros(params.num_of_target_areas)*amp
 
                 if(j == 0):
-                    I_total_E[0] = total_current[0] + params.I_vig + stimulus
-                    I_total_E[1:int(0.75*len(I_total_E))] = total_current[1:int(0.75*len(I_total_E))] + params.I_vig
+                    I_total_E[0] = total_current[0] + stimulus
+                    I_total_E[-int(0.75*len(I_total_E)):] = total_current[-int(0.75*len(I_total_E)):] + vigilance_current
                 
                 if(j == 1):
-                    I_total_E[0:int(0.75*len(I_total_E))] = total_current[:int(0.75*len(I_total_E))] + params.I_vig
+                    I_total_E[-int(0.75*len(I_total_E)):] = total_current[-int(0.75*len(I_total_E)):] + vigilance_current
             
-                I_total_E[int(0.75*len(I_total_E)):] = total_current[int(0.75*len(I_total_E)):]
+                I_total_E[1:-int(0.75*len(I_total_E))] = total_current[1:-int(0.75*len(I_total_E))]
 
                 self.rE[:, i, j] = rE + self.rate_dynamics(rE, I_total_E, "E") * dt*second
 
@@ -282,8 +284,7 @@ if( __name__ == "__main__"):
     result = model.run()
 
     area_index = model.area_names.index("9/46d")
-    # area_index = model.area_names.index("V1")
-    # IDK WHY ITS SPIKING AT THE START AND CAUSING PERSISTENT ACTIVITY 
+    area_index = model.area_names.index("V1")
 
     plt.plot(t_span_euler, model.rE[area_index, :, 0], color="red")
     plt.plot(t_span_euler, model.rE[area_index, :, 1], color="green")
