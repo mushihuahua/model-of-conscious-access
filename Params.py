@@ -37,11 +37,11 @@ class Params:
     G_I_I = -120*pA        # Inhibitory strengths (pA)
     G_E_NMDA = 1500*pA      # Long range strength NMDA (pA)
     G_I_NMDA = 10.5*pA      # Long range strength AMPA (pA)
-    G_E_AMPA = 15000*pA      # Long range strength NMDA (pA)
+    G_E_AMPA = 3500*pA      # Long range strength NMDA (pA)
     G_I_AMPA = 105*pA      # Long range strength AMPA (pA)
     G_0 = 215*pA            # Local balanced coupling (pA)
-    I_stim = 250*pA       # Stimulus strength (pA)
-    I_vig = 0*pA       # Vigilance strength (pA)
+    I_stim = 325*pA       # Stimulus strength (pA)
+    I_vig = 75*pA       # Vigilance strength (pA)
 
     # https://elifesciences.org/articles/72136
 

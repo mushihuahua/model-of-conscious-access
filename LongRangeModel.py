@@ -157,7 +157,7 @@ class LongRangeModel:
             I_total_I = (
                 self._inhibitory_ndma_current_long_range(s_NDMAo)
                 + self._inhibitory_ampa_current_long_range(s_AMPAo)
-                + (params.G_I_I * s_GABA)
+                # + (params.G_I_I * s_GABA)
                 + self._inhibitory_ndma_current(s_NDMAo) 
                 + I_noiseI + params.I_bg_I 
             )
