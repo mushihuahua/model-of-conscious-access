@@ -7,6 +7,7 @@ import math
 
 from Params import Params
 from utils.spines import spine_count_gradient_long_range, normalised_spine_count_long_range
+from utils.cache import Cache
 from brian2 import ms, second, amp, pA, nA, Hz
 
 import logging
@@ -23,6 +24,7 @@ class LongRangeModel:
     def __init__(self, params):
         # Store parameters
         self.params = params
+        self.cache = Cache()
 
         self.simulation_time = params.simulation_time # 1 second simulation
         self.dt = params.dt
