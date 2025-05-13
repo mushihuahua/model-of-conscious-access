@@ -30,6 +30,9 @@ class LongRangeModel:
         self.stimulus_start = params.stimulus_start
         self.stimulus_end = params.stimulus_end
 
+        self.distractor_start = params.distractor_start
+        self.distractor_end = params.distractor_end
+
         self.num_of_trials = 1
 
         self.t_span = (0, self.simulation_time)
@@ -106,12 +109,14 @@ class LongRangeModel:
             t = i*self.dt
 
             vigilance_current = self.params.I_vig
-            # if(t>= 0.8):
-            #     vigilance_current = 0
 
             stimulus = 0
             if(t <= self.stimulus_end and t >= self.stimulus_start):
                 stimulus = self.params.I_stim
+
+            distractor = 0
+            if(t <= self.distractor_end and t >= self.distractor_start):
+                distractor = self.params.I_stim
             
             self.sGABA[:, i] = s_GABA + self.synaptic_dynamics(s_GABA, rI, self.params.tau_GABA, self.params.gamma_GABA, gaba=True) * self.dt*second
 
@@ -128,11 +133,13 @@ class LongRangeModel:
 
                 self.noise[:, i, j] = I_noise + self.ornstein_uhlenbeck_process(I_noise) * self.dt*second
 
+                k_local = s_NDMA/(s_NDMA+s_AMPA)
+
                 total_current = (
                     np.array(list(map(self._dendritic_function_F, self._excitatory_ndma_current_long_range(s_NDMA)))) * amp
                     + np.array(list(map(self._dendritic_function_F, self._excitatory_ampa_current_long_range(s_AMPA)))) * amp
-                    + self._excitatory_ndma_current(s_NDMA) 
-                    + self._excitatory_ampa_current(s_AMPA)
+                    + self._excitatory_ndma_current(s_NDMA, k_local) 
+                    + self._excitatory_ampa_current(s_AMPA, k_local)
                     + self._excitatory_gaba_current(s_GABA) 
                     + I_noise + self.params.I_bg_E
                 )
@@ -140,10 +147,11 @@ class LongRangeModel:
                 I_total_E = np.zeros(self.params.num_of_target_areas)*amp
 
                 if(j == 0):
-                    I_total_E[0] = total_current[0] + stimulus
+                    I_total_E[0] = total_current[0] + stimulus 
                     I_total_E[-int(0.75*len(I_total_E)):] = total_current[-int(0.75*len(I_total_E)):] + vigilance_current
                 
                 if(j == 1):
+                    I_total_E[0] = total_current[0] + distractor 
                     I_total_E[-int(0.75*len(I_total_E)):] = total_current[-int(0.75*len(I_total_E)):] + vigilance_current
             
                 I_total_E[1:-int(0.75*len(I_total_E))] = total_current[1:-int(0.75*len(I_total_E))]
@@ -164,15 +172,13 @@ class LongRangeModel:
                 + I_noiseI + self.params.I_bg_I 
             )
 
-            # I_total_I[0] = I_total_I[0] + 10*pA
-
             self.rI[:, i] = rI + self.rate_dynamics(rI, I_total_I, "I") * self.dt*second
 
         return [self.rE, self.rI, self.sNDMA, self.sAMPA, self.sGABA]
 
     def run(self):
 
-        init_conditions = np.array((0.1, 0.1, 0.1, # NMDA, AMPA, GABA
+        init_conditions = np.array((0.01, 0.01, 0.01, # NMDA, AMPA, GABA
                                     0, 0, # rE, rI
                                     0))  # noise,
         
@@ -214,12 +220,12 @@ class LongRangeModel:
         logger.error("Crashing... `threshold_function` got bad input for `population` parameter")
         exit()
 
-    def _excitatory_ndma_current(self, S):
-        I = spine_count_gradient_long_range(self.spine_counts, "E") * self.params.k_local * self.params.G_n_loc_E_E * S
+    def _excitatory_ndma_current(self, S, k_local):
+        I = spine_count_gradient_long_range(self.spine_counts, "E") * k_local * self.params.G_n_loc_E_E * S
         return I
     
-    def _excitatory_ampa_current(self, S):
-        I = spine_count_gradient_long_range(self.spine_counts, "E") * (1 - self.params.k_local) * self.params.G_a_loc_E_E * S
+    def _excitatory_ampa_current(self, S, k_local):
+        I = spine_count_gradient_long_range(self.spine_counts, "E") * (1 - k_local) * self.params.G_a_loc_E_E * S
         return I
     
     def _excitatory_gaba_current(self, S):

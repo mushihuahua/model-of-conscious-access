@@ -49,6 +49,9 @@ class Params:
     stimulus_start: float = 0.50
     stimulus_end: float = 0.55
 
+    distractor_start: float = 1
+    distractor_end: float = -1.05
+
     num_of_trials: int = 1
 
     # https://elifesciences.org/articles/72136
