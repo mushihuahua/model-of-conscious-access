@@ -178,7 +178,7 @@ class LongRangeModel:
 
     def run(self):
 
-        init_conditions = np.array((0.01, 0.01, 0.01, # NMDA, AMPA, GABA
+        init_conditions = np.array((0.1, 0.1, 0.1, # NMDA, AMPA, GABA
                                     0, 0, # rE, rI
                                     0))  # noise,
         
